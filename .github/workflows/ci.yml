@@ -17,3 +17,15 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t fleet-commander:ci ./app
+
+      - name: Run container
+        run: docker run -d --name fleet-commander -p 8000:8080 fleet-commander:ci
+
+      - name: Test health endpoint
+        run: |
+          sleep 5
+          curl --fail http://localhost:8000/health
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs fleet-commander
