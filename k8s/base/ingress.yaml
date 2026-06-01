@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fleet-commander-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: fleet.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fleet-commander
+                port:
+                  number: 80
