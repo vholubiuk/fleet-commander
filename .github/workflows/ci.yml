@@ -6,9 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/fleet-commander
+
 jobs:
   docker-build:
-    name: Build Docker image
+    name: Build, test and push Docker image
     runs-on: ubuntu-latest
 
     steps:
@@ -29,3 +36,19 @@ jobs:
       - name: Show container logs on failure
         if: failure()
         run: docker logs fleet-commander
+
+      - name: Login to GHCR
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Tag Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker tag fleet-commander:ci $IMAGE_NAME:${{ github.sha }}
+          docker tag fleet-commander:ci $IMAGE_NAME:latest
+
+      - name: Push Docker image to GHCR
+        if: github.event_name == 'push'
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
