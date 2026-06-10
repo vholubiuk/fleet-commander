@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fleet-commander
+  namespace: fleet
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fleet-commander
+  endpoints:
+    - port: http
+      path: /metrics/
+      interval: 15s
