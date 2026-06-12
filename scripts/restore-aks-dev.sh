@@ -59,6 +59,27 @@ else
   echo "argocd/repo-secret.yaml not found. If repo is private, create repo credentials manually."
 fi
 
+echo "Creating ArgoCD repository secret..."
+
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  echo "ERROR: GITHUB_TOKEN is not set."
+  echo "Run: export GITHUB_TOKEN=your_github_token"
+  exit 1
+fi
+
+kubectl create secret generic fleet-commander-repo \
+  -n "$ARGOCD_NAMESPACE" \
+  --from-literal=type=git \
+  --from-literal=url=https://github.com/vholubiuk/fleet-commander.git \
+  --from-literal=username=vholubiuk \
+  --from-literal=password="$GITHUB_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl label secret fleet-commander-repo \
+  -n "$ARGOCD_NAMESPACE" \
+  argocd.argoproj.io/secret-type=repository \
+  --overwrite
+
 echo "Applying ArgoCD root application..."
 kubectl apply -f argocd/root-application.yaml
 
